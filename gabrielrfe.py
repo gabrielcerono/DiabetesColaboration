@@ -56,7 +56,7 @@ class RankingRE():
   
     featuresranks = np.dstack((columnsrf, rankings))
     borda = pd.DataFrame(data = np.squeeze(featuresranks, axis=0), columns=['Categories', 'Borda-Score'])
-    borda.sort_values(by='Borda-Score', inplace=True, ascending = True)
+    borda = borda.sort_values('Borda-Score')
 
     return borda
 
