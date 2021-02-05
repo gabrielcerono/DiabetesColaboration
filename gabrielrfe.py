@@ -18,6 +18,7 @@ class RankingRE():
   def ranking_borda(self):
     a = 0
     rankings = np.zeros(len(self.X.columns),)
+    std = np.zeros(len(self.X.columns),)
 
     for x in range(self.loops):
       seed = randint(0, 10000)
@@ -52,12 +53,23 @@ class RankingRE():
       outcome = np.array(list(zip(columnsrf, r2fr)))
       outcomepd = pd.DataFrame(data=outcome, columns=['Variables', 'r2-punish'])
       outcomepd['ranking'] = outcomepd['r2-punish'].rank(ascending = False)
+      # Hasta aca tengo los ranking borda de cada uno.
       rankings = np.add(outcomepd['ranking'].to_numpy(), rankings)
-  
+      # Con un stacking vertical tendria que estar
+      std = np.vstack((outcomepd['ranking'].to_numpy(), std))
+    
+    std = np.delete(std, -1, axis = 0)
+    std = np.std(std, axis = 0)
+    std = np.dstack((columnsrf, std))
     featuresranks = np.dstack((columnsrf, rankings))
+    std = pd.DataFrame(data = np.squeeze(std, axis = 0), columns =['Categories', 'STD'])
     borda = pd.DataFrame(data = np.squeeze(featuresranks, axis=0), columns=['Categories', 'Borda-Score'])
-    borda = borda.sort_values('Borda-Score')
-
+    borda = borda.merge(std, on = 'Categories',)
+    borda['Borda-Score'] = pd.to_numeric(borda['Borda-Score'])
+    borda['Borda-Average'] = borda['Borda-Score'] / self.loops
+    borda['ranking'] = borda['Borda-Score'].rank(ascending = True)
+    borda.sort_values(by='Borda-Score', inplace = True)
+    
     return borda
 
   def ranking_by_r2_punishment(self):
@@ -98,7 +110,8 @@ class RankingRE():
     
     rankings = np.true_divide(rankings, self.loops)
     featuresranks = np.dstack((columnsrf, rankings))
-    borda = pd.DataFrame(data = np.squeeze(featuresranks, axis=0), columns=['Categories', 'r2-punish'])
-    borda['ranking'] = borda['r2-punish'].rank(ascending = False)
+    borda = pd.DataFrame(data = np.squeeze(featuresranks, axis=0), columns=['Categories', 'average-r2-punishment'])
+    borda['ranking'] = borda['average-r2-punishment'].rank(ascending = False)
+    borda.sort_values(by='average-r2-punishment', inplace = True, ascending = False)
 
     return borda
