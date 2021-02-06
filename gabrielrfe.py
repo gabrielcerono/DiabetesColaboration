@@ -53,9 +53,9 @@ class RankingRE():
       outcome = np.array(list(zip(columnsrf, r2fr)))
       outcomepd = pd.DataFrame(data=outcome, columns=['Variables', 'r2-punish'])
       outcomepd['ranking'] = outcomepd['r2-punish'].rank(ascending = False)
-      # Hasta aca tengo los ranking borda de cada uno.
+     
       rankings = np.add(outcomepd['ranking'].to_numpy(), rankings)
-      # Con un stacking vertical tendria que estar
+      # We stack each value vertically to get a 2d numpy array
       std = np.vstack((outcomepd['ranking'].to_numpy(), std))
     
     std = np.delete(std, -1, axis = 0)
