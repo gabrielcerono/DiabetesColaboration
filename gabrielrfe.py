@@ -74,7 +74,7 @@ class RankingRE():
 
   def ranking_by_r2_punishment(self):
 
-    
+    std = np.zeros(len(self.X.columns),)
     rankings = np.zeros(len(self.X.columns),)
 
     for x in range(self.loops):
@@ -107,11 +107,17 @@ class RankingRE():
 
       outcome = np.array(r2fr)
       rankings = np.add(outcome, rankings)
+      std = np.vstack((outcome, std))
     
     rankings = np.true_divide(rankings, self.loops)
+    std = np.delete(std, -1, axis = 0)
+    std = np.std(std, axis = 0)
+    std = np.dstack((columnsrf, std))
+    std = pd.DataFrame(data = np.squeeze(std, axis = 0), columns =['Categories', 'STD_of_r2_punishment'])
     featuresranks = np.dstack((columnsrf, rankings))
     borda = pd.DataFrame(data = np.squeeze(featuresranks, axis=0), columns=['Categories', 'average-r2-punishment'])
     borda['ranking'] = borda['average-r2-punishment'].rank(ascending = False)
+    borda = borda.merge(std, on = 'Categories',)
     borda.sort_values(by='average-r2-punishment', inplace = True, ascending = False)
 
     return borda
